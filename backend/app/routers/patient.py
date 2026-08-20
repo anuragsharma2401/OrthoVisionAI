@@ -8,7 +8,7 @@ from app.schemas.patient import PatientCreate
 router = APIRouter(
     prefix="/patients",
     tags=["Patients"]
-)
+)  
 
 # Get all patients
 @router.get("/")
