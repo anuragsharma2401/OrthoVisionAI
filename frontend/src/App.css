@@ -403,6 +403,108 @@ button:focus-visible {
   line-height: 1.62;
 }
 
+.site-footer {
+  color: #cbd5e1;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(14, 165, 233, 0.18), transparent 30%),
+    linear-gradient(180deg, #0b1120 0%, #050914 100%);
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.site-footer-inner {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(42px, 6vw, 70px) 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 1.15fr) 2fr;
+  gap: clamp(34px, 6vw, 78px);
+}
+
+.footer-brand {
+  width: fit-content;
+  color: #f8fafc;
+}
+
+.footer-brand .brand-mark {
+  background: linear-gradient(145deg, #0ea5e9, #2563eb);
+  box-shadow: 0 12px 26px rgba(14, 165, 233, 0.26);
+}
+
+.footer-brand-section p {
+  max-width: 34ch;
+  margin: 18px 0 0;
+  color: #94a3b8;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.footer-links-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.footer-link-column h2 {
+  margin: 0 0 14px;
+  color: #f8fafc;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footer-link-column ul {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  list-style: none;
+}
+
+.footer-link-column a,
+.footer-link-column span {
+  color: #94a3b8;
+  font-size: 0.94rem;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.footer-link-column span {
+  opacity: 0.72;
+}
+
+.footer-link-column a {
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.footer-link-column a:hover,
+.footer-link-column a:focus-visible {
+  color: #7dd3fc;
+}
+
+.footer-bottom {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 22px 0 28px;
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 24px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.footer-bottom p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.footer-bottom p:last-child {
+  color: #8493a8;
+}
+
 .auth-page {
   min-height: 100vh;
   padding: clamp(22px, 4vw, 42px);
@@ -1567,6 +1669,11 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .site-footer-inner,
+  .footer-bottom {
+    grid-template-columns: 1fr;
+  }
+
   .info-card {
     min-height: auto;
   }
@@ -1699,6 +1806,10 @@ button:focus-visible {
 
   .feature-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-links-grid {
+    grid-template-columns: 1fr;
   }
 
   .auth-page {

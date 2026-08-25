@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
+import { useNavigate } from 'react-router-dom'
 
 const summaryCards = [
   {
@@ -88,11 +89,13 @@ function Dashboard() {
             icon={UploadCloud}
             title="Analyze X-ray"
             variant="primary"
+            path="/xray-analysis"
           />
           <QuickAction
             description="Upload a medical report for analysis."
             icon={FileScan}
             title="Upload Medical Report"
+            path="/medical-reports"
           />
         </section>
 
@@ -167,9 +170,10 @@ function Dashboard() {
   )
 }
 
-function QuickAction({ description, icon: Icon, title, variant }) {
+function QuickAction({ description, icon: Icon, title, variant, path }) {
+  const navigate = useNavigate();
   return (
-    <button className={`dashboard-action-card ${variant === 'primary' ? 'primary' : ''}`} type="button">
+    <button onClick={()=>navigate(path)} className={`dashboard-action-card ${variant === 'primary' ? 'primary' : ''}`} type="button">
       <span>
         <Icon size={24} />
       </span>

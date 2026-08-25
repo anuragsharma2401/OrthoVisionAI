@@ -11,6 +11,7 @@ import {
   UploadCloud,
   Utensils,
 } from 'lucide-react'
+import Footer from '../components/Footer.jsx'
 
 const featureSet = [
   { icon: UploadCloud, label: 'Upload X-ray' },
@@ -85,6 +86,7 @@ function Landing() {
           text="Turns findings into recovery, diet, and home-care recommendations."
         />
       </section>
+      <Footer />
     </main>
   )
 }

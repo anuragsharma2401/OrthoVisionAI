@@ -23,11 +23,11 @@ const navigationItems = [
   {
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
-      { icon: UploadCloud, label: 'X-ray Analysis', to: '/dashboard', disabled: true },
-      { icon: FileScan, label: 'Medical Reports', to: '/dashboard', disabled: true },
-      { icon: History, label: 'Analysis History', to: '/dashboard', disabled: true },
-      { icon: HeartPulse, label: 'Recovery Guidance', to: '/dashboard', disabled: true },
-      { icon: CalendarClock, label: 'Health Timeline', to: '/dashboard', disabled: true },
+      { icon: UploadCloud, label: 'X-ray Analysis', to: '/xray-analysis' },
+      { icon: FileScan, label: 'Medical Reports', to: '/medical-reports' },
+      { icon: History, label: 'Analysis History', to: '/analysis-history' },
+      { icon: HeartPulse, label: 'Recovery Guidance', to: '/recovery-guidance' },
+      { icon: CalendarClock, label: 'Health Timeline', to: '/health-timeline' },
     ],
   },
   {
@@ -85,30 +85,18 @@ function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
         <nav className="sidebar-nav" aria-label="Dashboard navigation">
           {navigationItems.map((group, groupIndex) => (
             <div className="sidebar-nav-group" key={`nav-group-${groupIndex}`}>
-              {group.items.map((item) =>
-                item.disabled ? (
-                  <button
-                    className="sidebar-link"
-                    key={item.label}
-                    title={isCollapsed ? item.label : undefined}
-                    type="button"
-                  >
-                    <item.icon size={19} aria-hidden="true" />
-                    <span>{item.label}</span>
-                  </button>
-                ) : (
-                  <NavLink
-                    className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                    key={item.label}
-                    title={isCollapsed ? item.label : undefined}
-                    to={item.to}
-                    onClick={closeMobileMenu}
-                  >
-                    <item.icon size={19} aria-hidden="true" />
-                    <span>{item.label}</span>
-                  </NavLink>
-                ),
-              )}
+              {group.items.map((item) => (
+                <NavLink
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  key={item.label}
+                  title={isCollapsed ? item.label : undefined}
+                  to={item.to}
+                  onClick={closeMobileMenu}
+                >
+                  <item.icon size={19} aria-hidden="true" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
             </div>
           ))}
         </nav>
@@ -148,10 +136,8 @@ function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
             </button>
 
             <button className="profile-chip" type="button">
-              <span className="avatar">{user?.name?.charAt(0) || 'U'}</span>
+              <span className="avatar">{user?.name?.charAt(0) || 'A'}</span>
               <span>
-                {/* <strong>{user?.name || 'Anurag'}</strong>
-                <small>{user?.role || 'OrthoVision User'}</small> */}
                 <strong>{'Anurag'}</strong>
                 <small>{'OrthoVision User'}</small>
               </span>

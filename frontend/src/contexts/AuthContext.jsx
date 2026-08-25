@@ -5,7 +5,7 @@ const SESSION_KEY = 'orthovision_dev_user'
 const DEV_AUTH_ENABLED = import.meta.env.VITE_ENABLE_DEV_AUTH === 'true'
 
 const defaultDevelopmentUser = {
-  name: 'Anurag Sharma',
+  name: 'Anurag',
   email: 'anurag@example.com',
   phone: '9876543210',
   role: 'Student',

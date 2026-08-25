@@ -91,8 +91,8 @@ function Register() {
   function handleDevelopmentRegister() {
     try {
       startDevelopmentSession({
-        name: values.fullName || 'Ayush',
-        email: values.email || 'ayush@example.com',
+        name: values.fullName || 'Anurag',
+        email: values.email || 'anurag@example.com',
         phone: values.phone || '9876543210',
       })
       navigate('/verify')

@@ -1,14 +1,19 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import AnalysisHistory from './pages/AnalysisHistory.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
+import HealthTimeline from './pages/HealthTimeline.jsx'
 import Landing from './pages/Landing.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import RecoveryGuidance from './pages/RecoveryGuidance.jsx'
 import Settings from './pages/Settings.jsx'
 import Verify from './pages/Verify.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
+import XRayAnalysis from './pages/XRayAnalysis.jsx'
+import MedicalReports from './pages/MedicalReports.jsx'
 import './App.css'
 
 function App() {
@@ -44,18 +49,51 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route 
+        path="/xray-analysis" 
+        element={
+          <ProtectedRoute>
+            <XRayAnalysis />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/medical-reports"
+        element={
+          <ProtectedRoute>
+            <MedicalReports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis-history"
+        element={
+          <ProtectedRoute>
+            <AnalysisHistory />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recovery-guidance"
+        element={
+          <ProtectedRoute>
+            <RecoveryGuidance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/health-timeline"
+        element={
+          <ProtectedRoute>
+            <HealthTimeline />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
 
 export default App
-
-
-
-// git init
-// git add README.md
-// git commit -m "first commit"
-// git branch -M main
-// git remote add origin https://github.com/anuragsharma2401/OrthoVisionAI.git
-// git push -u origin main

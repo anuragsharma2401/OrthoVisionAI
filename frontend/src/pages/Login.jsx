@@ -68,7 +68,7 @@ function Login() {
   function handleDevelopmentLogin() {
     try {
       startDevelopmentSession({
-        email: values.email || 'ayush@example.com',
+        email: values.email || 'anurag@example.com',
       })
       navigate(location.state?.from?.pathname || '/dashboard', { replace: true })
     } catch (error) {

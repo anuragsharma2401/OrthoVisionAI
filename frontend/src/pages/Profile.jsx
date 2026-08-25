@@ -64,14 +64,14 @@ function Profile() {
       <section className="settings-content">
         <article className="profile-summary-card">
           <div className="profile-avatar-wrap">
-            <span className="profile-avatar">{user?.name?.charAt(0) || 'U'}</span>
+            <span className="profile-avatar">{user?.name?.charAt(0) || 'A'}</span>
             <button type="button" aria-label="Upload profile picture">
               <Camera size={18} />
             </button>
           </div>
           <div>
             <p className="dashboard-eyebrow">Account profile</p>
-            <h2>{user?.name || 'OrthoVision User'}</h2>
+            <h2>{user?.name || 'Anurag'}</h2>
             <p>Manage basic identity and verification status for your workspace.</p>
           </div>
         </article>
