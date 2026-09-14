@@ -1,5 +1,5 @@
 numpy==1.23.4
-matplotlib==3.6.1
+matplotlib==3.10.9
 Pillow==9.3.0
 opencv-python==4.6.0.66
 nvidia-pyindex==1.0.9 
