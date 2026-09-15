@@ -2,7 +2,17 @@
 
 import os
 
-import pkg_resources as pkg
+try:
+    import pkg_resources as pkg
+except ModuleNotFoundError:
+    from packaging.version import parse as parse_version
+
+    class PkgResourcesFallback:
+        @staticmethod
+        def parse_version(value):
+            return parse_version(value)
+
+    pkg = PkgResourcesFallback()
 
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers

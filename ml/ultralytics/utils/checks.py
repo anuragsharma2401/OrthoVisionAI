@@ -14,11 +14,57 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import pkg_resources as pkg
 import psutil
 import requests
 import torch
 from matplotlib import font_manager
+try:
+    import pkg_resources as pkg
+except ModuleNotFoundError:
+    from importlib import import_module
+    from importlib.metadata import PackageNotFoundError, version
+
+    from packaging.requirements import Requirement
+    from packaging.version import parse as parse_version
+
+    class VersionConflict(Exception):
+        pass
+
+    class DistributionNotFound(Exception):
+        pass
+
+    class PkgResourcesFallback:
+        DistributionNotFound = DistributionNotFound
+        VersionConflict = VersionConflict
+
+        @staticmethod
+        def parse_version(value):
+            return parse_version(value)
+
+        @staticmethod
+        def parse_requirements(requirements):
+            if isinstance(requirements, str):
+                requirements = requirements.splitlines()
+
+            for requirement in requirements:
+                requirement = str(requirement).strip()
+                if requirement and not requirement.startswith("#"):
+                    yield Requirement(requirement)
+
+        @staticmethod
+        def require(requirement):
+            parsed = next(PkgResourcesFallback.parse_requirements(requirement))
+            try:
+                installed_version = version(parsed.name)
+            except PackageNotFoundError as exc:
+                raise DistributionNotFound(parsed.name) from exc
+
+            if parsed.specifier and not parsed.specifier.contains(installed_version, prereleases=True):
+                raise VersionConflict(f"{parsed.name} {installed_version} does not satisfy {parsed.specifier}")
+
+            return True
+
+    pkg = PkgResourcesFallback()
 
 from ultralytics.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, ThreadingLocked, TryExcept,
                                clean_url, colorstr, downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle,

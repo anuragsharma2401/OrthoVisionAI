@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from pathlib import Path
 import sys
 
@@ -17,6 +18,8 @@ if str(ML_ROOT) not in sys.path:
     sys.path.insert(0, str(ML_ROOT))
 
 from predictor import predict_xray
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/predictions",
@@ -64,6 +67,7 @@ async def create_prediction(
     try:
         ml_result = predict_xray(image_path)
     except Exception as exc:
+        logger.exception("X-ray model inference failed for uploaded file %s", image_path)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The AI model could not analyze this image. Please try again.",

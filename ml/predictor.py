@@ -21,8 +21,41 @@ ML_ROOT = Path(__file__).resolve().parent
 if str(ML_ROOT) not in sys.path:
     sys.path.insert(0, str(ML_ROOT))
 
-DEFAULT_MODEL_PATH = Path(os.getenv("ORTHOVISION_MODEL_PATH", REPO_ROOT / "ml" / "bone.pt"))
-DEFAULT_OUTPUT_DIR = Path(os.getenv("ORTHOVISION_PREDICTION_OUTPUT_DIR", REPO_ROOT / "backend" / "uploads" / "predictions"))
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(REPO_ROOT / "backend" / ".env")
+except ImportError:
+    pass
+
+
+def resolve_project_path(value: str | os.PathLike) -> Path:
+    path = Path(value)
+    if path.is_absolute():
+        return path
+
+    candidates = [
+        (REPO_ROOT / path).resolve(),
+        (REPO_ROOT / "backend" / path).resolve(),
+        (ML_ROOT / path).resolve(),
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return candidates[0]
+
+
+DEFAULT_MODEL_PATH = resolve_project_path(os.getenv("ORTHOVISION_MODEL_PATH", "ml/bone.pt"))
+DEFAULT_OUTPUT_DIR = resolve_project_path(
+    os.getenv("ORTHOVISION_PREDICTION_OUTPUT_DIR", "backend/uploads/predictions")
+)
+DEFAULT_YOLO_CONFIG_DIR = resolve_project_path(
+    os.getenv("YOLO_CONFIG_DIR", "backend/uploads/ultralytics")
+)
+DEFAULT_YOLO_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+os.environ.setdefault("YOLO_CONFIG_DIR", str(DEFAULT_YOLO_CONFIG_DIR))
 
 
 @lru_cache(maxsize=1)
