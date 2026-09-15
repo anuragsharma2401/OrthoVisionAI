@@ -78,8 +78,9 @@ function Register() {
       await register(values)
       setStatus({
         type: 'success',
-        message: 'Registration successful. Please login to continue.',
+        message: 'Registration successful. Opening your dashboard...',
       })
+      navigate('/dashboard', { replace: true })
     } catch (error) {
       setStatus({
         type: 'error',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight, ClipboardList, FileScan, SearchCheck } from 'lucide-react'
 import {
   InfoGrid,
@@ -8,22 +8,55 @@ import {
   UploadPanel,
 } from '../components/modules/ModuleComponents.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
-
-const uploadedReports = [
-  {
-    date: '12 Aug 2026',
-    name: 'Orthopedic consultation report',
-    status: 'Demo uploaded',
-  },
-  {
-    date: '09 Aug 2026',
-    name: 'Follow-up notes',
-    status: 'Awaiting analysis',
-  },
-]
+import { getMedicalReports, uploadMedicalReport } from '../services/analysisService.js'
 
 function MedicalReports() {
   const [selectedFile, setSelectedFile] = useState(null)
+  const [uploadedReports, setUploadedReports] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadReports() {
+      try {
+        const reports = await getMedicalReports()
+        if (isMounted) setUploadedReports(Array.isArray(reports) ? reports : [])
+      } catch (error) {
+        if (isMounted) setErrorMessage(error.message)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadReports()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  async function handleUpload() {
+    if (!selectedFile || isUploading) return
+
+    setIsUploading(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    try {
+      const response = await uploadMedicalReport(selectedFile)
+      setUploadedReports((current) => [response.report, ...current])
+      setSelectedFile(null)
+      setSuccessMessage('Medical report uploaded. AI extraction is not connected yet.')
+    } catch (error) {
+      setErrorMessage(error.message)
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   return (
     <DashboardLayout pageTitle="Medical Reports">
@@ -31,7 +64,7 @@ function MedicalReports() {
         <ModuleHeader
           eyebrow="Report intelligence"
           title="Upload medical reports for future AI review."
-          description="Prepare PDF, JPG, or PNG reports for backend-supported extraction, summarization, and recovery context."
+          description="Upload PDF, JPG, or PNG reports to your authenticated workspace for future extraction and recovery context."
         />
 
         <section className="module-two-column">
@@ -40,7 +73,7 @@ function MedicalReports() {
               <FileScan size={22} />
               <div>
                 <h2>Report upload</h2>
-                <p>Selected files are held in the browser UI only until FastAPI upload endpoints are connected.</p>
+                <p>Files are stored through the protected FastAPI reports endpoint.</p>
               </div>
             </div>
 
@@ -54,8 +87,16 @@ function MedicalReports() {
               onRemove={() => setSelectedFile(null)}
             />
 
-            <button className="primary-button module-primary-button" disabled={!selectedFile} type="button">
-              Upload and Analyze
+            {errorMessage && <p className="module-alert error">{errorMessage}</p>}
+            {successMessage && <p className="module-alert success">{successMessage}</p>}
+
+            <button
+              className="primary-button module-primary-button"
+              disabled={!selectedFile || isUploading}
+              type="button"
+              onClick={handleUpload}
+            >
+              {isUploading ? 'Uploading report...' : 'Upload Report'}
               <ArrowRight size={17} />
             </button>
           </ModuleCard>
@@ -85,25 +126,42 @@ function MedicalReports() {
             <ClipboardList size={22} />
             <div>
               <h2>Previously uploaded reports</h2>
-              <p>Demo report records. Real records will be populated by the backend.</p>
+              <p>Your authenticated report uploads. AI extraction remains pending backend support.</p>
             </div>
           </div>
 
-          <div className="module-list">
-            {uploadedReports.map((report) => (
-              <div className="module-list-row" key={`${report.name}-${report.date}`}>
-                <div>
-                  <strong>{report.name}</strong>
-                  <span>{report.date}</span>
+          {isLoading ? (
+            <p className="module-disclaimer">Loading medical reports...</p>
+          ) : uploadedReports.length > 0 ? (
+            <div className="module-list">
+              {uploadedReports.map((report) => (
+                <div className="module-list-row" key={report.id || `${report.file_name}-${report.created_at}`}>
+                  <div>
+                    <strong>{report.file_name || 'Medical report'}</strong>
+                    <span>{formatReportDate(report.created_at)}</span>
+                  </div>
+                  <StatusPill tone="info">{report.status || 'uploaded'}</StatusPill>
                 </div>
-                <StatusPill tone="info">{report.status}</StatusPill>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="module-disclaimer">No medical reports uploaded yet.</p>
+          )}
         </ModuleCard>
       </section>
     </DashboardLayout>
   )
+}
+
+function formatReportDate(value) {
+  if (!value) return 'Just now'
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 export default MedicalReports

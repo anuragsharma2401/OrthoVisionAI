@@ -1845,6 +1845,33 @@ button:focus-visible {
   margin-top: 18px;
 }
 
+.module-alert,
+.module-disclaimer {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.module-alert.error {
+  color: #b42318;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
+}
+
+.module-alert.success {
+  color: #067647;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+}
+
+.module-disclaimer {
+  color: var(--color-muted);
+  border: 1px solid rgba(23, 92, 211, 0.12);
+  background: #f8fafc;
+}
+
 .module-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

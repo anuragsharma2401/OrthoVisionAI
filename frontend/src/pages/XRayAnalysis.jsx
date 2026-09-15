@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Bone, BrainCircuit, FileImage, ScanSearch } from 'lucide-react'
 import {
   EmptyState,
@@ -9,30 +9,75 @@ import {
   UploadPanel,
 } from '../components/modules/ModuleComponents.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
-
-const recentAnalyses = [
-  {
-    bone: 'Wrist X-ray',
-    date: '12 Aug 2026',
-    status: 'Demo completed',
-  },
-  {
-    bone: 'Forearm X-ray',
-    date: '10 Aug 2026',
-    status: 'Demo review pending',
-  },
-]
+import { analyzeXray, getPredictionHistory } from '../services/analysisService.js'
 
 function XRayAnalysis() {
   const [selectedFile, setSelectedFile] = useState(null)
+  const [analysisResult, setAnalysisResult] = useState(null)
+  const [recentAnalyses, setRecentAnalyses] = useState([])
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
   const imagePreview = useMemo(() => {
     if (!selectedFile) return ''
     return URL.createObjectURL(selectedFile)
   }, [selectedFile])
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
+    }
+  }, [imagePreview])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadHistory() {
+      try {
+        const history = await getPredictionHistory()
+        if (isMounted) {
+          setRecentAnalyses(Array.isArray(history) ? history : [])
+        }
+      } catch (error) {
+        if (isMounted) setErrorMessage(error.message)
+      } finally {
+        if (isMounted) setIsLoadingHistory(false)
+      }
+    }
+
+    loadHistory()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   function handleFileChange(event) {
     setSelectedFile(event.target.files?.[0] || null)
+    setAnalysisResult(null)
+    setErrorMessage('')
+    setSuccessMessage('')
+  }
+
+  async function handleAnalyze() {
+    if (!selectedFile || isAnalyzing) return
+
+    setIsAnalyzing(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    try {
+      const response = await analyzeXray(selectedFile)
+      setAnalysisResult(response.analysis)
+      setRecentAnalyses((current) => [response.analysis, ...current])
+      setSuccessMessage('X-ray analysis completed using the connected ML model.')
+    } catch (error) {
+      setErrorMessage(error.message)
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
@@ -41,7 +86,7 @@ function XRayAnalysis() {
         <ModuleHeader
           eyebrow="AI image workflow"
           title="Upload an X-ray for assisted analysis."
-          description="Prepare X-ray images for future FastAPI + PyTorch fracture detection, bone identification, and explainable AI visualization."
+          description="Send X-ray images to the FastAPI backend for YOLO-based fracture/anomaly detection and structured results."
         />
 
         <section className="module-two-column">
@@ -50,7 +95,7 @@ function XRayAnalysis() {
               <FileImage size={22} />
               <div>
                 <h2>X-ray upload</h2>
-                <p>Supported UI: JPG, PNG, JPEG. Backend validation will be connected later.</p>
+                <p>Supported files: JPG, PNG, JPEG up to 10 MB.</p>
               </div>
             </div>
 
@@ -70,8 +115,16 @@ function XRayAnalysis() {
               </div>
             )}
 
-            <button className="primary-button module-primary-button" disabled={!selectedFile} type="button">
-              Analyze X-ray
+            {errorMessage && <p className="module-alert error">{errorMessage}</p>}
+            {successMessage && <p className="module-alert success">{successMessage}</p>}
+
+            <button
+              className="primary-button module-primary-button"
+              disabled={!selectedFile || isAnalyzing}
+              type="button"
+              onClick={handleAnalyze}
+            >
+              {isAnalyzing ? 'Analyzing X-ray...' : 'Analyze X-ray'}
               <ArrowRight size={17} />
             </button>
           </ModuleCard>
@@ -80,24 +133,34 @@ function XRayAnalysis() {
             <div className="module-card-heading">
               <BrainCircuit size={22} />
               <div>
-                <h2>Future AI result</h2>
-                <p>No medical prediction is shown until the backend model is connected.</p>
+                <h2>AI result</h2>
+                <p>Results come from the connected ML model. They are AI-assisted and require clinician review.</p>
               </div>
             </div>
 
             <InfoGrid
               items={[
-                { label: 'Detected bone', value: 'Pending analysis' },
-                { label: 'Anomaly status', value: 'Pending analysis' },
-                { label: 'Confidence', value: 'Pending model output' },
-                { label: 'Heatmap', value: 'Explainability placeholder' },
+                { label: 'Detected finding', value: analysisResult?.prediction || 'Pending analysis' },
+                { label: 'Detected bone/region', value: analysisResult?.detected_bone || 'Pending analysis' },
+                { label: 'Confidence', value: analysisResult?.confidence || 'Pending model output' },
+                { label: 'Analysis status', value: analysisResult?.status || 'Not started' },
               ]}
             />
 
             <div className="heatmap-placeholder">
               <ScanSearch size={30} />
-              <span>Explainable AI heatmap will render here.</span>
+              <span>
+                {analysisResult?.detections?.length
+                  ? `${analysisResult.detections.length} model detection(s) returned. Overlay image is saved by the backend when available.`
+                  : 'Explainable AI visualization will render here when returned by the model.'}
+              </span>
             </div>
+
+            {analysisResult?.summary && (
+              <p className="module-disclaimer">
+                {analysisResult.summary} This AI-assisted output is educational support and does not replace professional medical diagnosis.
+              </p>
+            )}
           </ModuleCard>
         </section>
 
@@ -106,25 +169,50 @@ function XRayAnalysis() {
             <Bone size={22} />
             <div>
               <h2>Recent analyses</h2>
-              <p>Sample records only. Real history will come from FastAPI.</p>
+              <p>Authenticated analysis records returned by FastAPI.</p>
             </div>
           </div>
 
-          <div className="module-list">
-            {recentAnalyses.map((analysis) => (
-              <div className="module-list-row" key={`${analysis.bone}-${analysis.date}`}>
-                <div>
-                  <strong>{analysis.bone}</strong>
-                  <span>{analysis.date}</span>
+          {isLoadingHistory ? (
+            <EmptyState
+              icon={ScanSearch}
+              title="Loading analysis history"
+              description="Fetching your authenticated X-ray records."
+            />
+          ) : recentAnalyses.length > 0 ? (
+            <div className="module-list">
+              {recentAnalyses.slice(0, 5).map((analysis) => (
+                <div className="module-list-row" key={analysis.id || `${analysis.prediction}-${analysis.created_at}`}>
+                  <div>
+                    <strong>{analysis.prediction || analysis.disease || 'X-ray analysis'}</strong>
+                    <span>{formatAnalysisDate(analysis.created_at)}</span>
+                  </div>
+                  <StatusPill tone="info">{analysis.status || 'completed'}</StatusPill>
                 </div>
-                <StatusPill tone="info">{analysis.status}</StatusPill>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Bone}
+              title="No X-ray analyses yet"
+              description="Upload an X-ray to create your first authenticated model result."
+            />
+          )}
         </ModuleCard>
       </section>
     </DashboardLayout>
   )
+}
+
+function formatAnalysisDate(value) {
+  if (!value) return 'Just now'
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 export default XRayAnalysis

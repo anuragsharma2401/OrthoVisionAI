@@ -25,19 +25,7 @@ export async function registerUser(payload) {
     },
   })
 
-  return {
-    message: response.message,
-    user: {
-      id: response.user_id,
-      name: payload.fullName,
-      fullName: payload.fullName,
-      email: payload.email,
-      phone: payload.phone,
-      role: 'user',
-      emailVerified: false,
-      phoneVerified: false,
-    },
-  }
+  return normalizeAuthResponse(response)
 }
 
 export function googleLogin() {
@@ -73,7 +61,10 @@ export function changePassword() {
 }
 
 export function getCurrentUser() {
-  return rejectMissingEndpoint('Current user restoration')
+  return apiRequest({
+    method: 'GET',
+    url: '/users/me',
+  }).then(normalizeAuthResponse)
 }
 
 function normalizeAuthResponse(response) {

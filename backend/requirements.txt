@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+python-jose
+pydantic[email]
+python-multipart
+-r ../ml/requirements.txt

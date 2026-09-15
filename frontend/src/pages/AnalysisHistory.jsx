@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileSearch, History, Search } from 'lucide-react'
 import {
   EmptyState,
@@ -7,27 +7,61 @@ import {
   StatusPill,
 } from '../components/modules/ModuleComponents.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
-
-const historyItems = [
-  {
-    date: '12 Aug 2026',
-    summary: 'Demo X-ray workflow completed. No real diagnosis displayed.',
-    title: 'Wrist X-ray',
-    type: 'X-ray',
-    status: 'Demo completed',
-  },
-  {
-    date: '09 Aug 2026',
-    summary: 'Medical report upload placeholder awaiting backend extraction.',
-    title: 'Consultation report',
-    type: 'Report',
-    status: 'Backend pending',
-  },
-]
+import { getMedicalReports, getPredictionHistory } from '../services/analysisService.js'
 
 function AnalysisHistory() {
   const [query, setQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState('All')
+  const [historyItems, setHistoryItems] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadHistory() {
+      setIsLoading(true)
+      setErrorMessage('')
+
+      try {
+        const [predictions, reports] = await Promise.all([
+          getPredictionHistory(),
+          getMedicalReports(),
+        ])
+
+        const items = [
+          ...(Array.isArray(predictions) ? predictions : []).map((prediction) => ({
+            date: prediction.created_at,
+            summary: prediction.summary || `Model result: ${prediction.disease || 'No detection'}`,
+            title: prediction.disease || 'X-ray analysis',
+            type: 'X-ray',
+            status: prediction.status || 'completed',
+            id: `xray-${prediction.id}`,
+          })),
+          ...(Array.isArray(reports) ? reports : []).map((report) => ({
+            date: report.created_at,
+            summary: report.report_text || 'Report uploaded. AI extraction is pending backend support.',
+            title: report.file_name || 'Medical report',
+            type: 'Report',
+            status: report.status || 'uploaded',
+            id: `report-${report.id}`,
+          })),
+        ].sort((first, second) => new Date(second.date || 0) - new Date(first.date || 0))
+
+        if (isMounted) setHistoryItems(items)
+      } catch (error) {
+        if (isMounted) setErrorMessage(error.message)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadHistory()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const filteredItems = useMemo(() => {
     return historyItems.filter((item) => {
@@ -47,6 +81,8 @@ function AnalysisHistory() {
           title="Review previous analysis activity."
           description="A central history for X-ray and medical-report analysis records, ready for backend data."
         />
+
+        {errorMessage && <p className="module-alert error">{errorMessage}</p>}
 
         <ModuleCard>
           <div className="history-filters">
@@ -68,10 +104,16 @@ function AnalysisHistory() {
         </ModuleCard>
 
         <ModuleCard>
-          {filteredItems.length > 0 ? (
+          {isLoading ? (
+            <EmptyState
+              icon={History}
+              title="Loading history"
+              description="Fetching your authenticated analysis records."
+            />
+          ) : filteredItems.length > 0 ? (
             <div className="history-list">
               {filteredItems.map((item) => (
-                <div className="history-row" key={`${item.title}-${item.date}`}>
+                <div className="history-row" key={item.id || `${item.title}-${item.date}`}>
                   <div className="history-icon">
                     <History size={20} />
                   </div>
@@ -79,7 +121,7 @@ function AnalysisHistory() {
                     <strong>{item.title}</strong>
                     <p>{item.summary}</p>
                   </div>
-                  <time>{item.date}</time>
+                  <time>{formatHistoryDate(item.date)}</time>
                   <StatusPill tone="info">{item.status}</StatusPill>
                 </div>
               ))}
@@ -95,6 +137,17 @@ function AnalysisHistory() {
       </section>
     </DashboardLayout>
   )
+}
+
+function formatHistoryDate(value) {
+  if (!value) return 'Just now'
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 export default AnalysisHistory

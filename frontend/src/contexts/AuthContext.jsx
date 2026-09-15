@@ -51,8 +51,9 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (payload) => {
     const response = await registerUser(payload)
+    applyAuthenticatedUser(response)
     return response
-  }, [])
+  }, [applyAuthenticatedUser])
 
   const restoreSession = useCallback(async () => {
     const token = getStoredToken()

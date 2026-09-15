@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -10,66 +11,84 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
-
-const summaryCards = [
-  {
-    icon: Bone,
-    label: 'X-rays Analyzed',
-    value: '03',
-    helper: 'Demo uploads prepared',
-  },
-  {
-    icon: FileScan,
-    label: 'Medical Reports',
-    value: '02',
-    helper: 'Awaiting backend storage',
-  },
-  {
-    icon: CheckCircle2,
-    label: 'Recent Analysis',
-    value: '1 demo case',
-    helper: 'No real prediction shown',
-  },
-  {
-    icon: HeartPulse,
-    label: 'Recovery Status',
-    value: 'Not started',
-    helper: 'Generated after analysis',
-  },
-]
-
-const recentAnalyses = [
-  {
-    date: '12 Aug 2026',
-    name: 'Wrist X-ray',
-    status: 'Demo analysis completed',
-  },
-  {
-    date: '10 Aug 2026',
-    name: 'Forearm X-ray',
-    status: 'Demo review pending',
-  },
-]
-
-const activityItems = [
-  {
-    label: 'X-ray analysis completed',
-    time: 'Today · 10:20 AM',
-  },
-  {
-    label: 'Medical report uploaded',
-    time: 'Yesterday · 04:15 PM',
-  },
-  {
-    label: 'Recovery guidance generated',
-    time: 'Demo event · backend pending',
-  },
-]
+import { getMedicalReports, getPredictionHistory } from '../services/analysisService.js'
 
 function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const firstName = user?.name?.split(' ')[0] || 'Anurag'
+  const [predictions, setPredictions] = useState([])
+  const [reports, setReports] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadDashboardData() {
+      try {
+        const [predictionRecords, reportRecords] = await Promise.all([
+          getPredictionHistory(),
+          getMedicalReports(),
+        ])
+
+        if (isMounted) {
+          setPredictions(Array.isArray(predictionRecords) ? predictionRecords : [])
+          setReports(Array.isArray(reportRecords) ? reportRecords : [])
+        }
+      } catch {
+        if (isMounted) {
+          setPredictions([])
+          setReports([])
+        }
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    loadDashboardData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const summaryCards = useMemo(() => [
+    {
+      icon: Bone,
+      label: 'X-rays Analyzed',
+      value: isLoading ? '...' : String(predictions.length).padStart(2, '0'),
+      helper: 'Authenticated model analyses',
+    },
+    {
+      icon: FileScan,
+      label: 'Medical Reports',
+      value: isLoading ? '...' : String(reports.length).padStart(2, '0'),
+      helper: 'Uploaded report records',
+    },
+    {
+      icon: CheckCircle2,
+      label: 'Recent Analysis',
+      value: predictions[0]?.disease || 'None yet',
+      helper: predictions[0]?.confidence || 'Run an X-ray analysis',
+    },
+    {
+      icon: HeartPulse,
+      label: 'Recovery Status',
+      value: 'Pending',
+      helper: 'Available after guidance backend support',
+    },
+  ], [isLoading, predictions, reports])
+
+  const activityItems = useMemo(() => [
+    ...predictions.slice(0, 3).map((prediction) => ({
+      label: `X-ray analysis ${prediction.status || 'completed'}`,
+      time: formatDashboardDate(prediction.created_at),
+    })),
+    ...reports.slice(0, 3).map((report) => ({
+      label: 'Medical report uploaded',
+      time: formatDashboardDate(report.created_at),
+    })),
+  ].slice(0, 3), [predictions, reports])
 
   return (
     <DashboardLayout pageTitle="Dashboard">
@@ -80,7 +99,7 @@ function Dashboard() {
             <h2>Good morning, {firstName} 👋</h2>
             <p>Here&apos;s an overview of your recent health activity.</p>
           </div>
-          <span className="demo-badge">Demo dashboard data</span>
+          <span className="demo-badge">Backend-connected workspace</span>
         </header>
 
         <section className="dashboard-action-grid" aria-label="Quick actions">
@@ -109,26 +128,30 @@ function Dashboard() {
           <article className="analysis-table-card">
             <div className="section-heading">
               <div>
-                <p className="dashboard-eyebrow">Demo records</p>
+                <p className="dashboard-eyebrow">Recent records</p>
                 <h2>Recent X-ray Analysis</h2>
               </div>
               <Bone size={22} />
             </div>
 
             <div className="analysis-table">
-              {recentAnalyses.map((analysis) => (
-                <div className="analysis-row" key={`${analysis.name}-${analysis.date}`}>
-                  <div>
-                    <strong>{analysis.name}</strong>
-                    <span>{analysis.status}</span>
+              {predictions.length > 0 ? (
+                predictions.slice(0, 3).map((analysis) => (
+                  <div className="analysis-row" key={analysis.id}>
+                    <div>
+                      <strong>{analysis.disease || 'X-ray analysis'}</strong>
+                      <span>{analysis.summary || analysis.status || 'completed'}</span>
+                    </div>
+                    <time>{formatDashboardDate(analysis.created_at)}</time>
+                    <button type="button" onClick={() => navigate('/analysis-history')}>
+                      View Analysis
+                      <ArrowRight size={15} />
+                    </button>
                   </div>
-                  <time>{analysis.date}</time>
-                  <button type="button" onClick={() => navigate('/analysis-history')}>
-                    View Analysis
-                    <ArrowRight size={15} />
-                  </button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="module-disclaimer">No X-ray analyses yet. Upload an X-ray to run the ML model.</p>
+              )}
             </div>
           </article>
 
@@ -137,9 +160,9 @@ function Dashboard() {
             <p className="dashboard-eyebrow">Recovery Overview</p>
             <h2>Recovery guidance will appear here.</h2>
             <p>
-              Once a verified X-ray analysis is available, this card can show
-              AI-generated recovery guidance, home-care reminders, and diet
-              recommendations.
+              Once verified analysis and clinical workflow support are available,
+              this card can show AI-assisted recovery guidance, home-care reminders,
+              and diet recommendations.
             </p>
             <button
               className="card-link-button recovery-link-button"
@@ -162,15 +185,19 @@ function Dashboard() {
           </div>
 
           <div className="activity-list">
-            {activityItems.map((activity) => (
-              <div className="activity-item" key={activity.label}>
-                <span></span>
-                <div>
-                  <strong>{activity.label}</strong>
-                  <p>{activity.time}</p>
+            {activityItems.length > 0 ? (
+              activityItems.map((activity) => (
+                <div className="activity-item" key={`${activity.label}-${activity.time}`}>
+                  <span></span>
+                  <div>
+                    <strong>{activity.label}</strong>
+                    <p>{activity.time}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="module-disclaimer">No recent activity yet.</p>
+            )}
           </div>
 
           <button
@@ -219,6 +246,17 @@ function SummaryCard({ helper, icon: Icon, label, value }) {
       <p>{helper}</p>
     </article>
   )
+}
+
+function formatDashboardDate(value) {
+  if (!value) return 'Just now'
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 export default Dashboard
