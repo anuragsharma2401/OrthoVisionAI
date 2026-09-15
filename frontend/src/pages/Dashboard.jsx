@@ -1,16 +1,15 @@
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   Bone,
   CalendarClock,
   CheckCircle2,
-  ClipboardPlus,
   FileScan,
   HeartPulse,
   UploadCloud,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
-import { useNavigate } from 'react-router-dom'
 
 const summaryCards = [
   {
@@ -43,7 +42,7 @@ const recentAnalyses = [
   {
     date: '12 Aug 2026',
     name: 'Wrist X-ray',
-    status: 'Analysis completed',
+    status: 'Demo analysis completed',
   },
   {
     date: '10 Aug 2026',
@@ -69,6 +68,7 @@ const activityItems = [
 
 function Dashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const firstName = user?.name?.split(' ')[0] || 'Anurag'
 
   return (
@@ -80,7 +80,7 @@ function Dashboard() {
             <h2>Good morning, {firstName} 👋</h2>
             <p>Here&apos;s an overview of your recent health activity.</p>
           </div>
-          {/* <span className="demo-badge">Demo dashboard data</span> */}
+          <span className="demo-badge">Demo dashboard data</span>
         </header>
 
         <section className="dashboard-action-grid" aria-label="Quick actions">
@@ -123,7 +123,7 @@ function Dashboard() {
                     <span>{analysis.status}</span>
                   </div>
                   <time>{analysis.date}</time>
-                  <button type="button">
+                  <button type="button" onClick={() => navigate('/analysis-history')}>
                     View Analysis
                     <ArrowRight size={15} />
                   </button>
@@ -141,6 +141,14 @@ function Dashboard() {
               AI-generated recovery guidance, home-care reminders, and diet
               recommendations.
             </p>
+            <button
+              className="card-link-button recovery-link-button"
+              type="button"
+              onClick={() => navigate('/recovery-guidance')}
+            >
+              View Recovery Guidance
+              <ArrowRight size={16} />
+            </button>
           </article>
         </section>
 
@@ -164,6 +172,15 @@ function Dashboard() {
               </div>
             ))}
           </div>
+
+          <button
+            className="card-link-button timeline-link-button"
+            type="button"
+            onClick={() => navigate('/health-timeline')}
+          >
+            View Health Timeline
+            <ArrowRight size={16} />
+          </button>
         </section>
       </section>
     </DashboardLayout>
@@ -171,9 +188,14 @@ function Dashboard() {
 }
 
 function QuickAction({ description, icon: Icon, title, variant, path }) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+
   return (
-    <button onClick={()=>navigate(path)} className={`dashboard-action-card ${variant === 'primary' ? 'primary' : ''}`} type="button">
+    <button
+      className={`dashboard-action-card ${variant === 'primary' ? 'primary' : ''}`}
+      type="button"
+      onClick={() => navigate(path)}
+    >
       <span>
         <Icon size={24} />
       </span>

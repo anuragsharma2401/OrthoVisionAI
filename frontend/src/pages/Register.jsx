@@ -4,7 +4,7 @@ import AuthLayout from '../components/auth/AuthLayout.jsx'
 import FormField from '../components/auth/FormField.jsx'
 import GoogleButton from '../components/auth/GoogleButton.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { googleLogin, registerUser } from '../services/authService.js'
+import { googleLogin } from '../services/authService.js'
 import {
   getPasswordStrength,
   isValidEmail,
@@ -20,7 +20,7 @@ const initialValues = {
 }
 
 function Register() {
-  const { isDevelopmentAuthEnabled, startDevelopmentSession, updateCurrentUser } = useAuth()
+  const { isDevelopmentAuthEnabled, register, startDevelopmentSession } = useAuth()
   const navigate = useNavigate()
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
@@ -75,9 +75,11 @@ function Register() {
 
     setIsSubmitting(true)
     try {
-      const response = await registerUser(values)
-      updateCurrentUser(response.user)
-      navigate('/verify')
+      await register(values)
+      setStatus({
+        type: 'success',
+        message: 'Registration successful. Please login to continue.',
+      })
     } catch (error) {
       setStatus({
         type: 'error',

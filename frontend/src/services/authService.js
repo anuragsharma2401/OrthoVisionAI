@@ -1,80 +1,103 @@
 import { apiRequest } from './api.js'
 
-export function loginUser(payload) {
-  return apiRequest({
+export async function loginUser(payload) {
+  const response = await apiRequest({
     method: 'POST',
-    url: '/auth/login',
-    data: payload,
+    url: '/users/login',
+    data: {
+      email: payload.email,
+      password: payload.password,
+    },
   })
+
+  return normalizeAuthResponse(response)
 }
 
-export function registerUser(payload) {
-  return apiRequest({
+export async function registerUser(payload) {
+  const response = await apiRequest({
     method: 'POST',
-    url: '/auth/register',
-    data: payload,
+    url: '/users/register',
+    data: {
+      full_name: payload.fullName,
+      email: payload.email,
+      password: payload.password,
+      role: 'user',
+    },
   })
+
+  return {
+    message: response.message,
+    user: {
+      id: response.user_id,
+      name: payload.fullName,
+      fullName: payload.fullName,
+      email: payload.email,
+      phone: payload.phone,
+      role: 'user',
+      emailVerified: false,
+      phoneVerified: false,
+    },
+  }
 }
 
 export function googleLogin() {
-  return apiRequest({
-    method: 'GET',
-    url: '/auth/google',
-  })
+  return rejectMissingEndpoint('Google OAuth')
 }
 
-export function sendOTP(payload) {
-  return apiRequest({
-    method: 'POST',
-    url: '/auth/otp/send',
-    data: payload,
-  })
+export function sendOTP() {
+  return rejectMissingEndpoint('OTP sending')
 }
 
-export function verifyOTP(payload) {
-  return apiRequest({
-    method: 'POST',
-    url: '/auth/otp/verify',
-    data: payload,
-  })
+export function verifyOTP() {
+  return rejectMissingEndpoint('OTP verification')
 }
 
-export function resendOTP(payload) {
-  return apiRequest({
-    method: 'POST',
-    url: '/auth/otp/resend',
-    data: payload,
-  })
+export function resendOTP() {
+  return rejectMissingEndpoint('OTP resend')
 }
 
-export function forgotPassword(payload) {
-  return apiRequest({
-    method: 'POST',
-    url: '/auth/forgot-password',
-    data: payload,
-  })
+export function forgotPassword() {
+  return rejectMissingEndpoint('Forgot password')
 }
 
-export function resetPassword(payload) {
-  return apiRequest({
-    method: 'POST',
-    url: '/auth/reset-password',
-    data: payload,
-  })
+export function resetPassword() {
+  return rejectMissingEndpoint('Password reset')
 }
 
-export function updateProfile(payload) {
-  return apiRequest({
-    method: 'PATCH',
-    url: '/users/me',
-    data: payload,
-  })
+export function updateProfile() {
+  return rejectMissingEndpoint('Profile update')
 }
 
-export function changePassword(payload) {
-  return apiRequest({
-    method: 'POST',
-    url: '/auth/change-password',
-    data: payload,
-  })
+export function changePassword() {
+  return rejectMissingEndpoint('Change password')
+}
+
+export function getCurrentUser() {
+  return rejectMissingEndpoint('Current user restoration')
+}
+
+function normalizeAuthResponse(response) {
+  const backendUser = response.user || {}
+  const token = response.access_token || response.token || response.jwt || ''
+
+  return {
+    message: response.message,
+    token,
+    user: {
+      id: backendUser.id,
+      name: backendUser.full_name || backendUser.name || 'Anurag',
+      fullName: backendUser.full_name || backendUser.name || 'Anurag',
+      email: backendUser.email || '',
+      phone: backendUser.phone || '',
+      role: backendUser.role || 'user',
+      emailVerified: Boolean(backendUser.email_verified),
+      phoneVerified: Boolean(backendUser.phone_verified),
+    },
+  }
+}
+
+function rejectMissingEndpoint(featureName) {
+  return Promise.reject(
+    new Error(`${featureName} is waiting for backend API support.`),
+  )
 }
