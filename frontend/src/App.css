@@ -1839,6 +1839,31 @@ button:focus-visible {
   border-radius: 18px;
 }
 
+.result-image-card {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid rgba(23, 92, 211, 0.14);
+  border-radius: 24px;
+  background: #f8fafc;
+}
+
+.result-image-card img {
+  width: 100%;
+  max-height: 380px;
+  display: block;
+  object-fit: contain;
+  border-radius: 18px;
+  background: #101828;
+}
+
+.result-image-card span {
+  display: block;
+  margin-top: 10px;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 .module-primary-button {
   width: 100%;
   gap: 8px;

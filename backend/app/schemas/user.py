@@ -18,3 +18,28 @@ class UserLogin(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class GoogleLoginRequest(BaseModel):
+    access_token: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    identifier: str
+
+
+class OtpRequest(BaseModel):
+    identifier: str
+    purpose: str = "forgot-password"
+
+
+class OtpVerifyRequest(BaseModel):
+    identifier: str
+    otp: str
+    purpose: str = "forgot-password"
+
+
+class ResetPasswordRequest(BaseModel):
+    identifier: str
+    otp: str
+    password: str

@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.db.database import Base, engine
@@ -56,10 +58,41 @@ def ensure_report_columns():
 
 ensure_report_columns()
 
+
+def ensure_patient_columns():
+    statements = [
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_name = 'patients'
+                  AND column_name = 'phone'
+            ) THEN
+                ALTER TABLE patients ALTER COLUMN phone DROP NOT NULL;
+            END IF;
+        END $$;
+        """,
+    ]
+
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
+
+
+ensure_patient_columns()
+
 app = FastAPI(
     title="OrthoVision AI Backend",
     version="1.0.0"
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+UPLOAD_ROOT = Path(os.getenv("ORTHOVISION_UPLOAD_DIR", "uploads"))
+if not UPLOAD_ROOT.is_absolute():
+    UPLOAD_ROOT = (REPO_ROOT / "backend" / UPLOAD_ROOT).resolve()
+UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 
 allowed_origins = [
     origin.strip()
@@ -74,6 +107,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_ROOT)), name="uploads")
 
 # Include routers
 app.include_router(user.router)

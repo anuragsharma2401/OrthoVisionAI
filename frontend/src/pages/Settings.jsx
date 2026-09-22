@@ -2,10 +2,6 @@ import { Link } from 'react-router-dom'
 import {
   Bell,
   LockKeyhole,
-  Mail,
-  MonitorCog,
-  Phone,
-  ShieldCheck,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
@@ -36,10 +32,6 @@ function Settings() {
               { label: 'Change password', to: '/reset-password' },
               {
                 label: user?.emailVerified ? 'Email verified' : 'Verify email',
-                to: '/verify',
-              },
-              {
-                label: user?.phoneVerified ? 'Phone verified' : 'Verify phone',
                 to: '/verify',
               },
             ]}
@@ -77,18 +69,6 @@ function SettingsCard({ description, icon: Icon, items, title }) {
             <span key={item.label}>{item.label}</span>
           ),
         )}
-      </div>
-    </article>
-  )
-}
-
-function PreferenceTile({ icon: Icon, title, value }) {
-  return (
-    <article className="preference-tile">
-      <Icon size={22} />
-      <div>
-        <strong>{title}</strong>
-        <span>{value}</span>
       </div>
     </article>
   )

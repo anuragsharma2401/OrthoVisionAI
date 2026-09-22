@@ -4,7 +4,6 @@ import AuthLayout from '../components/auth/AuthLayout.jsx'
 import FormField from '../components/auth/FormField.jsx'
 import GoogleButton from '../components/auth/GoogleButton.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { googleLogin } from '../services/authService.js'
 import { isValidEmail } from '../utils/validation.js'
 
 const initialValues = {
@@ -14,7 +13,7 @@ const initialValues = {
 }
 
 function Login() {
-  const { isDevelopmentAuthEnabled, login, startDevelopmentSession } = useAuth()
+  const { isDevelopmentAuthEnabled, login, loginWithGoogle, startDevelopmentSession } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [values, setValues] = useState(initialValues)
@@ -79,7 +78,8 @@ function Login() {
     setStatus({ type: '', message: '' })
     setIsSubmitting(true)
     try {
-      await googleLogin()
+      await loginWithGoogle()
+      navigate(location.state?.from?.pathname || '/dashboard', { replace: true })
     } catch (error) {
       setStatus({
         type: 'error',

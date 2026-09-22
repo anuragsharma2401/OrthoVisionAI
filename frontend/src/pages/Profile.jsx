@@ -1,18 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Camera, CheckCircle2, Mail, Phone, ShieldAlert } from 'lucide-react'
+import { Camera, CheckCircle2, Mail, ShieldAlert } from 'lucide-react'
 import FormField from '../components/auth/FormField.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
 import { updateProfile } from '../services/authService.js'
-import { isValidEmail, isValidPhone } from '../utils/validation.js'
+import { isValidEmail } from '../utils/validation.js'
 
 function Profile() {
   const { updateCurrentUser, user } = useAuth()
   const [values, setValues] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || '',
   })
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ type: '', message: '' })
@@ -31,8 +30,6 @@ function Profile() {
     if (!values.name.trim()) nextErrors.name = 'Name is required.'
     if (!values.email.trim()) nextErrors.email = 'Email is required.'
     else if (!isValidEmail(values.email)) nextErrors.email = 'Enter a valid email address.'
-    if (!values.phone.trim()) nextErrors.phone = 'Phone number is required.'
-    else if (!isValidPhone(values.phone)) nextErrors.phone = 'Enter a valid 10-digit Indian mobile number.'
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -101,15 +98,6 @@ function Profile() {
               value={values.email}
               onChange={updateValue}
             />
-            <FormField
-              error={errors.phone}
-              id="profilePhone"
-              inputMode="numeric"
-              label="Phone"
-              name="phone"
-              value={values.phone}
-              onChange={updateValue}
-            />
 
             {status.message && (
               <p className={`form-status ${status.type}`}>{status.message}</p>
@@ -133,13 +121,6 @@ function Profile() {
               label="Email"
               value={values.email}
               verified={user?.emailVerified}
-              verifyPath="/verify"
-            />
-            <VerificationRow
-              icon={Phone}
-              label="Phone"
-              value={values.phone}
-              verified={user?.phoneVerified}
               verifyPath="/verify"
             />
 

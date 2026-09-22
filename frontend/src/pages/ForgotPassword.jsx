@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/auth/AuthLayout.jsx'
 import FormField from '../components/auth/FormField.jsx'
 import OtpVerification from '../components/auth/OtpVerification.jsx'
 import { forgotPassword } from '../services/authService.js'
-import { isValidEmail, isValidPhone } from '../utils/validation.js'
+import { isValidEmail } from '../utils/validation.js'
 
 function ForgotPassword() {
+  const navigate = useNavigate()
   const [identifier, setIdentifier] = useState('')
   const [error, setError] = useState('')
   const [status, setStatus] = useState({ type: '', message: '' })
@@ -15,12 +16,12 @@ function ForgotPassword() {
 
   function validate() {
     if (!identifier.trim()) {
-      setError('Enter your email or phone number.')
+      setError('Enter your email address.')
       return false
     }
 
-    if (!isValidEmail(identifier) && !isValidPhone(identifier)) {
-      setError('Enter a valid email or 10-digit Indian mobile number.')
+    if (!isValidEmail(identifier)) {
+      setError('Enter a valid registered email address.')
       return false
     }
 
@@ -53,7 +54,7 @@ function ForgotPassword() {
     <AuthLayout
       eyebrow="Password recovery"
       title="Recover access securely."
-      subtitle="Enter your registered email or phone number. OTP verification is required before setting a new password."
+      subtitle="Enter your registered email. OTP verification is required before setting a new password."
     >
       {!otpRequested ? (
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -61,9 +62,9 @@ function ForgotPassword() {
             autoComplete="username"
             error={error}
             id="recoveryIdentifier"
-            label="Email or Phone"
+            label="Email"
             name="identifier"
-            placeholder="you@example.com or 9876543210"
+            placeholder="you@example.com"
             value={identifier}
             onChange={(event) => {
               setIdentifier(event.target.value)
@@ -87,8 +88,14 @@ function ForgotPassword() {
         <>
           <OtpVerification
             contactLabel={identifier}
+            identifier={identifier}
             purpose="forgot-password"
             onChangeContactPath="/forgot-password"
+            onVerified={(otp) => {
+              navigate(
+                `/reset-password?identifier=${encodeURIComponent(identifier)}&otp=${encodeURIComponent(otp)}`,
+              )
+            }}
           />
           <p className="auth-switch reset-next-step">
             OTP verified? Continue to <Link to="/reset-password">Reset Password</Link>

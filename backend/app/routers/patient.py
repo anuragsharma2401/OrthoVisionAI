@@ -24,8 +24,6 @@ def add_patient(patient: PatientCreate, db: Session = Depends(get_db)):
         name=patient.name,
         age=patient.age,
         gender=patient.gender,
-        phone=patient.phone,
-        
     )
 
     db.add(new_patient)

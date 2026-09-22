@@ -8,4 +8,3 @@ class Patient(Base):
     name = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
     gender = Column(String, nullable=False)
-    phone = Column(String, nullable=False)

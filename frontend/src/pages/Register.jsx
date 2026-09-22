@@ -4,23 +4,20 @@ import AuthLayout from '../components/auth/AuthLayout.jsx'
 import FormField from '../components/auth/FormField.jsx'
 import GoogleButton from '../components/auth/GoogleButton.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { googleLogin } from '../services/authService.js'
 import {
   getPasswordStrength,
   isValidEmail,
-  isValidPhone,
 } from '../utils/validation.js'
 
 const initialValues = {
   fullName: '',
   email: '',
-  phone: '',
   password: '',
   confirmPassword: '',
 }
 
 function Register() {
-  const { isDevelopmentAuthEnabled, register, startDevelopmentSession } = useAuth()
+  const { isDevelopmentAuthEnabled, loginWithGoogle, register, startDevelopmentSession } = useAuth()
   const navigate = useNavigate()
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
@@ -47,9 +44,6 @@ function Register() {
 
     if (!values.email.trim()) nextErrors.email = 'Email is required.'
     else if (!isValidEmail(values.email)) nextErrors.email = 'Enter a valid email address.'
-
-    if (!values.phone.trim()) nextErrors.phone = 'Phone number is required.'
-    else if (!isValidPhone(values.phone)) nextErrors.phone = 'Enter a valid 10-digit Indian mobile number.'
 
     if (!values.password) nextErrors.password = 'Password is required.'
     else if (passwordStrength.score < 4) {
@@ -96,7 +90,6 @@ function Register() {
       startDevelopmentSession({
         name: values.fullName || 'Anurag',
         email: values.email || 'anurag@example.com',
-        phone: values.phone || '9876543210',
       })
       navigate('/verify')
     } catch (error) {
@@ -108,7 +101,8 @@ function Register() {
     setStatus({ type: '', message: '' })
     setIsSubmitting(true)
     try {
-      await googleLogin()
+      await loginWithGoogle()
+      navigate('/dashboard', { replace: true })
     } catch (error) {
       setStatus({
         type: 'error',
@@ -155,18 +149,6 @@ function Register() {
           name="email"
           placeholder="you@example.com"
           value={values.email}
-          onChange={updateValue}
-        />
-
-        <FormField
-          autoComplete="tel"
-          error={errors.phone}
-          id="phone"
-          inputMode="numeric"
-          label="Phone Number"
-          name="phone"
-          placeholder="9876543210"
-          value={values.phone}
           onChange={updateValue}
         />
 

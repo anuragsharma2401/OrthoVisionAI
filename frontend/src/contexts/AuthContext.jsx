@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import { clearStoredToken, getStoredToken, setStoredToken } from '../services/api.js'
 import {
   getCurrentUser,
+  googleLogin,
   loginUser,
   registerUser,
 } from '../services/authService.js'
@@ -14,10 +15,8 @@ const defaultDevelopmentUser = {
   name: 'Anurag',
   fullName: 'Anurag',
   email: 'anurag@example.com',
-  phone: '9876543210',
   role: 'Student',
   emailVerified: false,
-  phoneVerified: false,
 }
 
 function getInitialUser() {
@@ -51,6 +50,12 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async (payload) => {
     const response = await registerUser(payload)
+    applyAuthenticatedUser(response)
+    return response
+  }, [applyAuthenticatedUser])
+
+  const loginWithGoogle = useCallback(async () => {
+    const response = await googleLogin()
     applyAuthenticatedUser(response)
     return response
   }, [applyAuthenticatedUser])
@@ -115,6 +120,7 @@ export function AuthProvider({ children }) {
       isDevelopmentAuthEnabled: DEV_AUTH_ENABLED,
       isRestoringSession,
       login,
+      loginWithGoogle,
       logout,
       register,
       restoreSession,
@@ -125,6 +131,7 @@ export function AuthProvider({ children }) {
     [
       isRestoringSession,
       login,
+      loginWithGoogle,
       logout,
       register,
       restoreSession,

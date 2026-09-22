@@ -1,33 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import AuthLayout from '../components/auth/AuthLayout.jsx'
 import FormField from '../components/auth/FormField.jsx'
 import OtpVerification from '../components/auth/OtpVerification.jsx'
 import { sendOTP } from '../services/authService.js'
-import { isValidEmail, isValidPhone } from '../utils/validation.js'
+import { isValidEmail } from '../utils/validation.js'
 
 function Verify() {
-  const [method, setMethod] = useState('email')
-  const [contact, setContact] = useState('')
+  const [email, setEmail] = useState('')
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ type: '', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [otpRequested, setOtpRequested] = useState(false)
 
-  const contactLabel = useMemo(() => {
-    if (!contact) return method === 'email' ? 'your email' : 'your phone'
-    return method === 'email' ? `email ${contact}` : `phone ${contact}`
-  }, [contact, method])
-
   function validate() {
     const nextErrors = {}
 
-    if (!contact.trim()) {
-      nextErrors.contact =
-        method === 'email' ? 'Email is required.' : 'Phone number is required.'
-    } else if (method === 'email' && !isValidEmail(contact)) {
-      nextErrors.contact = 'Enter a valid email address.'
-    } else if (method === 'phone' && !isValidPhone(contact)) {
-      nextErrors.contact = 'Enter a valid 10-digit Indian mobile number.'
+    if (!email.trim()) {
+      nextErrors.email = 'Email is required.'
+    } else if (!isValidEmail(email)) {
+      nextErrors.email = 'Enter a valid email address.'
     }
 
     setErrors(nextErrors)
@@ -42,7 +33,7 @@ function Verify() {
 
     setIsSubmitting(true)
     try {
-      await sendOTP({ method, contact, purpose: 'account-verification' })
+      await sendOTP({ identifier: email, purpose: 'account-verification' })
       setOtpRequested(true)
     } catch (error) {
       setStatus({
@@ -57,47 +48,21 @@ function Verify() {
   return (
     <AuthLayout
       eyebrow="Account verification"
-      title="Verify one contact method."
-      subtitle="You can verify email or phone now. The other can be completed later from profile settings."
+      title="Verify your email."
+      subtitle="Enter your registered email to receive a secure OTP."
     >
       {!otpRequested ? (
         <form className="auth-form" onSubmit={handleSendOtp} noValidate>
-          <div className="verification-choice" role="radiogroup" aria-label="Verification method">
-            <button
-              className={method === 'email' ? 'active' : ''}
-              type="button"
-              onClick={() => {
-                setMethod('email')
-                setContact('')
-                setErrors({})
-              }}
-            >
-              Email OTP
-            </button>
-            <button
-              className={method === 'phone' ? 'active' : ''}
-              type="button"
-              onClick={() => {
-                setMethod('phone')
-                setContact('')
-                setErrors({})
-              }}
-            >
-              Phone OTP
-            </button>
-          </div>
-
           <FormField
-            autoComplete={method === 'email' ? 'email' : 'tel'}
-            error={errors.contact}
-            id="verificationContact"
-            inputMode={method === 'phone' ? 'numeric' : undefined}
-            label={method === 'email' ? 'Email' : 'Phone Number'}
-            name="contact"
-            placeholder={method === 'email' ? 'you@example.com' : '9876543210'}
-            value={contact}
+            autoComplete="email"
+            error={errors.email}
+            id="verificationEmail"
+            label="Email"
+            name="email"
+            placeholder="you@example.com"
+            value={email}
             onChange={(event) => {
-              setContact(event.target.value)
+              setEmail(event.target.value)
               setErrors({})
             }}
           />
@@ -112,7 +77,8 @@ function Verify() {
         </form>
       ) : (
         <OtpVerification
-          contactLabel={contactLabel}
+          contactLabel={email}
+          identifier={email}
           purpose="account-verification"
           onChangeContactPath="/verify"
         />

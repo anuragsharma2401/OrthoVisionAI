@@ -6,9 +6,11 @@ const OTP_LENGTH = 6
 const RESEND_SECONDS = 45
 
 function OtpVerification({
-  contactLabel = 'your email or phone',
+  contactLabel = 'your email',
+  identifier = '',
   purpose = 'verification',
   onChangeContactPath,
+  onVerified,
 }) {
   const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(''))
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS)
@@ -79,8 +81,9 @@ function OtpVerification({
 
     setIsLoading(true)
     try {
-      await verifyOTP({ otp: otpValue, purpose })
+      await verifyOTP({ identifier: identifier || contactLabel, otp: otpValue, purpose })
       setStatus({ type: 'success', message: 'OTP verified successfully.' })
+      onVerified?.(otpValue)
     } catch (error) {
       setStatus({
         type: 'error',
@@ -95,7 +98,7 @@ function OtpVerification({
     setStatus({ type: '', message: '' })
     setIsLoading(true)
     try {
-      await resendOTP({ purpose })
+      await resendOTP({ identifier: identifier || contactLabel, purpose })
       setSecondsLeft(RESEND_SECONDS)
       setStatus({ type: 'success', message: 'OTP resend request submitted.' })
     } catch (error) {
@@ -158,7 +161,7 @@ function OtpVerification({
         </button>
 
         {onChangeContactPath && (
-          <Link to={onChangeContactPath}>Change email/phone</Link>
+          <Link to={onChangeContactPath}>Change email</Link>
         )}
       </div>
     </form>

@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from pathlib import Path
 import sys
+from urllib.parse import quote
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -20,6 +21,7 @@ if str(ML_ROOT) not in sys.path:
 from predictor import predict_xray
 
 logger = logging.getLogger(__name__)
+UPLOAD_ROOT = Path(__file__).resolve().parents[2] / "uploads"
 
 router = APIRouter(
     prefix="/predictions",
@@ -65,7 +67,7 @@ async def create_prediction(
     image_path = save_image(file)
 
     try:
-        ml_result = predict_xray(image_path)
+        ml_result = predict_xray(image_path)  
     except Exception as exc:
         logger.exception("X-ray model inference failed for uploaded file %s", image_path)
         raise HTTPException(
@@ -116,7 +118,27 @@ async def create_prediction(
             "summary": summary,
             "image_path": image_path,
             "result_image_path": new_prediction.result_image_path,
+            "result_image_url": get_upload_url(new_prediction.result_image_path),
             "detections": ml_result.get("detections", []),
             "created_at": datetime.utcnow().isoformat() + "Z",
         }
     }
+
+
+def get_upload_url(file_path: str | None) -> str | None:
+    if not file_path:
+        return None
+
+    path = Path(file_path)
+    if not path.is_absolute():
+        path = path.resolve()
+
+    try:
+        relative_path = path.relative_to(UPLOAD_ROOT.resolve())
+    except ValueError:
+        parts = path.parts
+        if "uploads" not in parts:
+            return None
+        relative_path = Path(*parts[parts.index("uploads") + 1:])
+
+    return "/uploads/" + quote(relative_path.as_posix())

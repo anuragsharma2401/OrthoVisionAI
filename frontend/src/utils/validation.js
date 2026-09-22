@@ -2,10 +2,6 @@ export function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
 }
 
-export function isValidPhone(phone) {
-  return /^[6-9]\d{9}$/.test(phone.trim())
-}
-
 export function getPasswordStrength(password) {
   const checks = [
     password.length >= 8,

@@ -1,17 +1,25 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../components/auth/AuthLayout.jsx'
 import FormField from '../components/auth/FormField.jsx'
 import { resetPassword } from '../services/authService.js'
 import { getPasswordStrength } from '../utils/validation.js'
 
 const initialValues = {
+  identifier: '',
+  otp: '',
   password: '',
   confirmPassword: '',
 }
 
 function ResetPassword() {
-  const [values, setValues] = useState(initialValues)
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const [values, setValues] = useState({
+    ...initialValues,
+    identifier: searchParams.get('identifier') || '',
+    otp: searchParams.get('otp') || '',
+  })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -32,6 +40,14 @@ function ResetPassword() {
 
   function validate() {
     const nextErrors = {}
+
+    if (!values.identifier.trim()) {
+      nextErrors.identifier = 'Email is required.'
+    }
+
+    if (!/^\d{6}$/.test(values.otp)) {
+      nextErrors.otp = 'Enter the 6-digit OTP.'
+    }
 
     if (!values.password) nextErrors.password = 'New password is required.'
     else if (passwordStrength.score < 4) {
@@ -57,11 +73,16 @@ function ResetPassword() {
 
     setIsSubmitting(true)
     try {
-      await resetPassword({ password: values.password })
+      await resetPassword({
+        identifier: values.identifier,
+        otp: values.otp,
+        password: values.password,
+      })
       setStatus({
         type: 'success',
-        message: 'Password reset request submitted.',
+        message: 'Password reset successfully. Redirecting to login...',
       })
+      window.setTimeout(() => navigate('/login', { replace: true }), 900)
     } catch (error) {
       setStatus({
         type: 'error',
@@ -79,6 +100,29 @@ function ResetPassword() {
       subtitle="Use a strong password that is unique to your OrthoVision AI account."
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <FormField
+          autoComplete="email"
+          error={errors.identifier}
+          id="resetIdentifier"
+          label="Email"
+          name="identifier"
+          placeholder="you@example.com"
+          value={values.identifier}
+          onChange={updateValue}
+        />
+
+        <FormField
+          autoComplete="one-time-code"
+          error={errors.otp}
+          id="resetOtp"
+          inputMode="numeric"
+          label="OTP"
+          name="otp"
+          placeholder="Enter 6-digit OTP"
+          value={values.otp}
+          onChange={updateValue}
+        />
+
         <FormField
           autoComplete="new-password"
           error={errors.password}
