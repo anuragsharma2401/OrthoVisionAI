@@ -17,6 +17,7 @@ function MedicalReports() {
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [latestReport, setLatestReport] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -24,7 +25,11 @@ function MedicalReports() {
     async function loadReports() {
       try {
         const reports = await getMedicalReports()
-        if (isMounted) setUploadedReports(Array.isArray(reports) ? reports : [])
+        if (isMounted) {
+          const reportItems = Array.isArray(reports) ? reports : []
+          setUploadedReports(reportItems)
+          setLatestReport(reportItems[0] || null)
+        }
       } catch (error) {
         if (isMounted) setErrorMessage(error.message)
       } finally {
@@ -49,8 +54,13 @@ function MedicalReports() {
     try {
       const response = await uploadMedicalReport(selectedFile)
       setUploadedReports((current) => [response.report, ...current])
+      setLatestReport(response.report)
       setSelectedFile(null)
-      setSuccessMessage('Medical report uploaded. AI extraction is not connected yet.')
+      setSuccessMessage(
+        response.report?.status === 'analyzed'
+          ? 'Medical report uploaded and analyzed with Gemini.'
+          : 'Medical report uploaded. Analysis details are shown when available.',
+      )
     } catch (error) {
       setErrorMessage(error.message)
     } finally {
@@ -105,19 +115,50 @@ function MedicalReports() {
             <div className="module-card-heading">
               <SearchCheck size={22} />
               <div>
-                <h2>Future extracted findings</h2>
-                <p>No clinical extraction is shown until backend analysis is available.</p>
+                <h2>AI report analysis</h2>
+                <p>Gemini explains uploaded reports when server-side API access is configured.</p>
               </div>
             </div>
 
             <InfoGrid
               items={[
-                { label: 'Report type', value: 'Pending upload' },
-                { label: 'Key findings', value: 'Pending backend analysis' },
-                { label: 'Care context', value: 'Not generated yet' },
-                { label: 'Linked X-ray', value: 'Optional later' },
+                { label: 'Report type', value: latestReport?.analysis?.report_type || 'Pending upload' },
+                { label: 'Status', value: latestReport?.status || 'Not uploaded' },
+                { label: 'Severity', value: latestReport?.analysis?.severity || 'Not specified' },
+                { label: 'Findings', value: latestReport?.key_findings?.length ? `${latestReport.key_findings.length} extracted` : 'Pending analysis' },
               ]}
             />
+
+            {latestReport?.analysis_error && (
+              <p className="module-alert error">{latestReport.analysis_error}</p>
+            )}
+
+            {(latestReport?.explanation || latestReport?.key_findings?.length || latestReport?.guidance) && (
+              <div className="ai-explanation-card">
+                {latestReport?.explanation && (
+                  <section>
+                    <h3>Report explanation</h3>
+                    <p>{latestReport.explanation}</p>
+                  </section>
+                )}
+                {latestReport?.key_findings?.length > 0 && (
+                  <section>
+                    <h3>Structured findings</h3>
+                    <ul>
+                      {latestReport.key_findings.map((finding) => (
+                        <li key={finding}>{finding}</li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                {latestReport?.guidance && (
+                  <section>
+                    <h3>General guidance</h3>
+                    <p>{latestReport.guidance}</p>
+                  </section>
+                )}
+              </div>
+            )}
           </ModuleCard>
         </section>
 
@@ -135,13 +176,18 @@ function MedicalReports() {
           ) : uploadedReports.length > 0 ? (
             <div className="module-list">
               {uploadedReports.map((report) => (
-                <div className="module-list-row" key={report.id || `${report.file_name}-${report.created_at}`}>
+                <button
+                  className="module-list-row module-list-button"
+                  key={report.id || `${report.file_name}-${report.created_at}`}
+                  type="button"
+                  onClick={() => setLatestReport(report)}
+                >
                   <div>
                     <strong>{report.file_name || 'Medical report'}</strong>
                     <span>{formatReportDate(report.created_at)}</span>
                   </div>
                   <StatusPill tone="info">{report.status || 'uploaded'}</StatusPill>
-                </div>
+                </button>
               ))}
             </div>
           ) : (

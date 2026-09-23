@@ -10,13 +10,18 @@ import {
 } from '../components/modules/ModuleComponents.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
 import { API_BASE_URL } from '../services/api.js'
-import { analyzeXray, getPredictionHistory } from '../services/analysisService.js'
+import {
+  analyzeXray,
+  downloadAnalysisReport,
+  getPredictionHistory,
+} from '../services/analysisService.js'
 
 function XRayAnalysis() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [analysisResult, setAnalysisResult] = useState(null)
   const [recentAnalyses, setRecentAnalyses] = useState([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isDownloadingReport, setIsDownloadingReport] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -81,6 +86,20 @@ function XRayAnalysis() {
     }
   }
 
+  async function handleDownloadReport() {
+    if (!analysisResult?.id || isDownloadingReport) return
+
+    setIsDownloadingReport(true)
+    setErrorMessage('')
+    try {
+      await downloadAnalysisReport(analysisResult.id)
+    } catch (error) {
+      setErrorMessage(error.message)
+    } finally {
+      setIsDownloadingReport(false)
+    }
+  }
+
   return (
     <DashboardLayout pageTitle="X-Ray Analysis">
       <section className="module-page">
@@ -141,10 +160,10 @@ function XRayAnalysis() {
 
             <InfoGrid
               items={[
-                { label: 'Detected finding', value: analysisResult?.prediction || 'Pending analysis' },
-                { label: 'Detected bone/region', value: analysisResult?.detected_bone || 'Pending analysis' },
+                { label: 'Detected region', value: analysisResult?.detected_bone || 'Pending Gemini enrichment' },
+                { label: 'Detected finding', value: analysisResult?.finding || analysisResult?.prediction || 'Pending analysis' },
                 { label: 'Confidence', value: analysisResult?.confidence || 'Pending model output' },
-                { label: 'Analysis status', value: analysisResult?.status || 'Not started' },
+                { label: 'Severity', value: analysisResult?.severity || 'Not specified' },
               ]}
             />
 
@@ -171,6 +190,53 @@ function XRayAnalysis() {
               <p className="module-disclaimer">
                 {analysisResult.summary} This AI-assisted output is educational support and does not replace professional medical diagnosis.
               </p>
+            )}
+
+            {analysisResult?.gemini_error && (
+              <p className="module-alert error">{analysisResult.gemini_error}</p>
+            )}
+
+            {(analysisResult?.explanation ||
+              analysisResult?.recovery_guidance ||
+              analysisResult?.home_care_guidance ||
+              analysisResult?.warning_guidance) && (
+              <div className="ai-explanation-card">
+                {analysisResult?.explanation && (
+                  <section>
+                    <h3>Patient-friendly explanation</h3>
+                    <p>{analysisResult.explanation}</p>
+                  </section>
+                )}
+                {analysisResult?.recovery_guidance && (
+                  <section>
+                    <h3>Recovery information</h3>
+                    <p>{analysisResult.recovery_guidance}</p>
+                  </section>
+                )}
+                {analysisResult?.home_care_guidance && (
+                  <section>
+                    <h3>General home-care guidance</h3>
+                    <p>{analysisResult.home_care_guidance}</p>
+                  </section>
+                )}
+                {analysisResult?.warning_guidance && (
+                  <section>
+                    <h3>When to seek medical care</h3>
+                    <p>{analysisResult.warning_guidance}</p>
+                  </section>
+                )}
+              </div>
+            )}
+
+            {analysisResult?.id && (
+              <button
+                className="secondary-report-button"
+                disabled={isDownloadingReport}
+                type="button"
+                onClick={handleDownloadReport}
+              >
+                {isDownloadingReport ? 'Preparing report...' : 'Download AI report'}
+              </button>
             )}
           </ModuleCard>
         </section>

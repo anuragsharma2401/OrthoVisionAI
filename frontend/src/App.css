@@ -1897,6 +1897,49 @@ button:focus-visible {
   background: #f8fafc;
 }
 
+.ai-explanation-card {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.ai-explanation-card section {
+  padding: 16px;
+  border: 1px solid rgba(23, 92, 211, 0.12);
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.ai-explanation-card h3 {
+  margin: 0 0 8px;
+  color: #182230;
+  font-size: 0.98rem;
+}
+
+.ai-explanation-card p,
+.ai-explanation-card ul {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.secondary-report-button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px 16px;
+  border: 1px solid rgba(23, 92, 211, 0.22);
+  border-radius: 999px;
+  color: var(--color-accent);
+  background: #eef6ff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.secondary-report-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #e0f2fe;
+}
+
 .module-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1974,6 +2017,17 @@ button:focus-visible {
   padding: 15px;
   border-radius: 18px;
   background: #f8fafc;
+}
+
+.module-list-button {
+  width: 100%;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.module-list-button:hover {
+  background: #eef6ff;
 }
 
 .module-list-row strong,

@@ -121,7 +121,8 @@ def predict_xray(image_path: str, output_dir: str | None = None) -> dict:
     return {
         "prediction": top_detection["label"] if top_detection else "No detection",
         "confidence": top_detection["confidence"] if top_detection else None,
-        "detected_bone": top_detection["label"] if top_detection else "Not detected",
+        "detected_bone": None,
+        "finding": top_detection["label"] if top_detection else "No detection",
         "detections": detections,
         "result_image_path": str(result_image_path) if result_image_path else None,
         "model": str(DEFAULT_MODEL_PATH),
