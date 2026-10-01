@@ -15,6 +15,7 @@ from app.schemas.user import (
     ResetPasswordRequest,
     UserCreate,
     UserLogin,
+    UpadatePasswordRequest,
 )
 from app.services.email_service import send_password_reset_otp
 from app.services.auth_service import (
@@ -181,6 +182,18 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 
     db_user.password = hash_password(payload.password)
     db.commit()
+
+    return {"message": "Password reset successfully. Please login with your new password."}
+
+@router.post("/update_profile")
+def update_profile(payload: UpadatePasswordRequest, db: Session = Depends(get_db)):
+    identifier = payload.identifier.strip().lower()
+
+    db_user = db.query(User).filter(User.email == identifier).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="No account found for this email")
+    
+    db_user.full_name = payload.full_name
 
     return {"message": "Password reset successfully. Please login with your new password."}
 

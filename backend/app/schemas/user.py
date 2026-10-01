@@ -43,3 +43,9 @@ class ResetPasswordRequest(BaseModel):
     identifier: str
     otp: str
     password: str
+
+class UpadatePasswordRequest(BaseModel):
+    identifier: str
+    full_name: str
+    email: EmailStr
+    

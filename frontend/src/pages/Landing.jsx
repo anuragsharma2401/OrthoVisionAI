@@ -54,13 +54,9 @@ function Landing() {
           </p>
 
           <div className="cta-row">
-            <Link className="primary-button" to="/register">
+            <Link className="primary-button" to="/login">
               Analyze X-ray
             </Link>
-            <a className="text-button" href="#reports">
-              <span>See sample report</span>
-              <ArrowRight size={17} aria-hidden="true" />
-            </a>
           </div>
         </div>
 
@@ -93,7 +89,7 @@ function Landing() {
 
 function AppleDeviceMockup() {
   return (
-    <aside className="apple-device" aria-label="AI X-ray analysis preview" id="workflow">
+    <aside className="apple-device" aria-label="AI X-ray analysis preview" >
       <div className="device-toolbar" aria-hidden="true">
         <span></span>
         <span></span>
@@ -116,7 +112,7 @@ function AppleDeviceMockup() {
 
 function FeatureStrip() {
   return (
-    <section className="feature-strip" aria-label="OrthoVision AI workflow">
+    <section className="feature-strip" aria-label="OrthoVision AI workflow" id="workflow">
       {featureSet.map((feature) => (
         <div className="feature-item" key={feature.label}>
           <feature.icon size={19} aria-hidden="true" />

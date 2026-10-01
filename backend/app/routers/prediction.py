@@ -43,7 +43,7 @@ def get_predictions(
         .order_by(Prediction.id.desc())
         .all()
     )
-    return predictions
+    return [prediction_to_dict(prediction) for prediction in predictions]
 
 
 @router.post("/upload")
@@ -71,6 +71,7 @@ async def create_prediction(
 
     try:
         ml_result = predict_xray(image_path)  
+        
     except Exception as exc:
         logger.exception("X-ray model inference failed for uploaded file %s", image_path)
         raise HTTPException(
@@ -117,7 +118,7 @@ async def create_prediction(
         home_care_guidance=gemini_result.get("home_care_guidance"),
         warning_guidance=gemini_result.get("warning_guidance"),
         gemini_enrichment=json.dumps(gemini_result, ensure_ascii=False) if gemini_result else None,
-        status="completed",
+        status="Completed",
         summary=summary,
         image_path=image_path,
         result_image_path=ml_result.get("result_image_path"),
@@ -148,6 +149,7 @@ async def create_prediction(
             "image_path": image_path,
             "result_image_path": new_prediction.result_image_path,
             "result_image_url": get_upload_url(new_prediction.result_image_path),
+            "heatmap_image_url": get_upload_url(ml_result.get("heatmap_path")),
             "detections": ml_result.get("detections", []),
             "created_at": datetime.utcnow().isoformat() + "Z",
         }
@@ -170,10 +172,21 @@ def download_prediction_report(
         raise HTTPException(status_code=404, detail="Analysis not found")
 
     analysis = prediction_to_dict(prediction)
+
+    print("REPORT ANALYSIS HEATMAP:", analysis.get("heatmap_image_url"))
+    print("REPORT ANALYSIS KEYS:", analysis.keys())
+
     html = build_analysis_report_html(
         current_user,
         analysis,
-        image_url=absolute_upload_url(request, prediction.result_image_path),
+        image_url=absolute_upload_url(
+            request,
+            prediction.result_image_path,
+        ),
+        heatmap_url=absolute_upload_url(
+            request,
+            analysis.get("heatmap_image_url"),
+        ),
     )
     return Response(
         content=html,
@@ -209,6 +222,16 @@ def absolute_upload_url(request: Request, file_path: str | None) -> str | None:
 
 
 def prediction_to_dict(prediction: Prediction) -> dict:
+    heatmap_path = None
+
+    if prediction.image_path and prediction.result_image_path:
+        image_path = Path(prediction.image_path)
+        result_path = Path(prediction.result_image_path)
+
+        heatmap_path = str(
+            result_path.parent / f"{image_path.stem}-heatmap.jpg"
+        )
+
     return {
         "id": prediction.id,
         "status": prediction.status,
@@ -224,5 +247,10 @@ def prediction_to_dict(prediction: Prediction) -> dict:
         "warning_guidance": prediction.warning_guidance,
         "summary": prediction.summary,
         "result_image_url": get_upload_url(prediction.result_image_path),
-        "created_at": prediction.created_at.isoformat() if prediction.created_at else None,
+        "heatmap_image_url": get_upload_url(heatmap_path) if heatmap_path else None,
+        "created_at": (
+            prediction.created_at.isoformat()
+            if prediction.created_at
+            else None
+        ),
     }

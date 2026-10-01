@@ -75,18 +75,27 @@ async def upload_report(
 
     analysis = {}
     analysis_error = None
-    status_value = "uploaded"
+    status_value = "Uploaded"
 
     try:
         analysis = analyze_medical_report(str(file_path))
-        status_value = "analyzed"
+        status_value = "Analyzed"
+
     except GeminiNotConfiguredError as exc:
+        logger.exception("Gemini is not configured")
         analysis_error = str(exc)
-        status_value = "uploaded"
+        status_value = "Uploaded"
+
     except Exception as exc:
-        logger.exception("Gemini report analysis failed for uploaded report %s", file_path)
-        analysis_error = "Gemini report analysis failed. The report was uploaded successfully."
-        status_value = "analysis_failed"
+        logger.exception(
+            "Gemini report analysis failed for uploaded report %s",
+            file_path,
+        )
+        analysis_error = (
+            "Gemini report analysis failed. "
+            "The report was uploaded successfully."
+        )
+        status_value = "Analysis failed"
 
     report = Report(
         patient_id=patient_id,
@@ -98,7 +107,6 @@ async def upload_report(
         explanation=analysis.get("explanation"),
         findings=json.dumps(analysis.get("key_findings", []), ensure_ascii=False),
         guidance=analysis.get("home_care_guidance") or analysis.get("recovery_information"),
-        analysis_error=analysis_error,
         pdf_path=str(file_path),
     )
 
@@ -108,6 +116,7 @@ async def upload_report(
 
     return {
         "message": "Medical report uploaded successfully",
+        "analysis_error": analysis_error,
         "report": serialize_report(report),
     }
 
@@ -136,7 +145,6 @@ def serialize_report(report: Report) -> dict:
         "explanation": report.explanation,
         "key_findings": key_findings,
         "guidance": report.guidance,
-        "analysis_error": report.analysis_error,
         "analysis": analysis,
         "created_at": report.created_at.isoformat() if report.created_at else None,
     }

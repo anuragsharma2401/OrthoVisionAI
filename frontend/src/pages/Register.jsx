@@ -14,7 +14,7 @@ const initialValues = {
   email: '',
   password: '',
   confirmPassword: '',
-}
+} 
 
 function Register() {
   const { isDevelopmentAuthEnabled, loginWithGoogle, register, startDevelopmentSession } = useAuth()
@@ -38,28 +38,39 @@ function Register() {
   }
 
   function validate() {
-    const nextErrors = {}
+  const nextErrors = {}
 
-    if (!values.fullName.trim()) nextErrors.fullName = 'Full name is required.'
+  const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/
 
-    if (!values.email.trim()) nextErrors.email = 'Email is required.'
-    else if (!isValidEmail(values.email)) nextErrors.email = 'Enter a valid email address.'
-
-    if (!values.password) nextErrors.password = 'Password is required.'
-    else if (passwordStrength.score < 4) {
-      nextErrors.password =
-        'Use at least 8 characters with uppercase, lowercase, number, and symbol.'
-    }
-
-    if (!values.confirmPassword) {
-      nextErrors.confirmPassword = 'Confirm your password.'
-    } else if (values.confirmPassword !== values.password) {
-      nextErrors.confirmPassword = 'Passwords do not match.'
-    }
-
-    setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
+  if (!values.fullName.trim()) {
+    nextErrors.fullName = 'Full name is required.'
+  } else if (!nameRegex.test(values.fullName.trim())) {
+    nextErrors.fullName =
+      'Full name should contain only letters, spaces, hyphens, or apostrophes.'
   }
+
+  if (!values.email.trim()) {
+    nextErrors.email = 'Email is required.'
+  } else if (!isValidEmail(values.email)) {
+    nextErrors.email = 'Enter a valid email address.'
+  }
+
+  if (!values.password) {
+    nextErrors.password = 'Password is required.'
+  } else if (passwordStrength.score < 4) {
+    nextErrors.password =
+      'Use at least 8 characters with uppercase, lowercase, number, and symbol.'
+  }
+
+  if (!values.confirmPassword) {
+    nextErrors.confirmPassword = 'Confirm your password.'
+  } else if (values.confirmPassword !== values.password) {
+    nextErrors.confirmPassword = 'Passwords do not match.'
+  }
+
+  setErrors(nextErrors)
+  return Object.keys(nextErrors).length === 0
+}
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -70,11 +81,13 @@ function Register() {
     setIsSubmitting(true)
     try {
       await register(values)
-      setStatus({
-        type: 'success',
+
+    navigate('/login', {
+      replace: true,
+      state: {
         message: 'Registration successful. Please login to continue.',
-      })
-      navigate('/login', { replace: true })
+      },
+    })
     } catch (error) {
       setStatus({
         type: 'error',

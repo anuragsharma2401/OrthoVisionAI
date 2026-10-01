@@ -62,9 +62,7 @@ function Profile() {
         <article className="profile-summary-card">
           <div className="profile-avatar-wrap">
             <span className="profile-avatar">{user?.name?.charAt(0) || 'A'}</span>
-            <button type="button" aria-label="Upload profile picture">
-              <Camera size={18} />
-            </button>
+            
           </div>
           <div>
             <p className="dashboard-eyebrow">Account profile</p>
@@ -103,7 +101,7 @@ function Profile() {
               <p className={`form-status ${status.type}`}>{status.message}</p>
             )}
 
-            <button className="primary-button auth-submit" disabled={isSaving} type="submit">
+            <button className="primary-button auth-submit" disabled={isSaving} type="submit" >
               {isSaving ? 'Saving...' : 'Save Profile'}
             </button>
           </form>
@@ -142,11 +140,6 @@ function VerificationRow({ icon: Icon, label, value, verified, verifyPath }) {
         <strong>{label}</strong>
         <span>{value || 'Not added'}</span>
       </div>
-      <span className={`verify-badge ${verified ? 'verified' : 'unverified'}`}>
-        {verified ? <CheckCircle2 size={15} /> : <ShieldAlert size={15} />}
-        {verified ? 'Verified' : 'Not verified'}
-      </span>
-      {!verified && <Link to={verifyPath}>Verify</Link>}
     </div>
   )
 }

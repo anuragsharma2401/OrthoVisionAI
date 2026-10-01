@@ -98,8 +98,16 @@ export function resetPassword(payload) {
   })
 }
 
-export function updateProfile() {
-  return rejectMissingEndpoint('Profile update')
+export function updateProfile(payload) {
+  return apiRequest({
+    method: 'POST',
+    url: '/users/update_profile',
+    data: {
+      identifier: payload.identifier,
+      full_name: payload.fullName,
+      email: payload.email
+    },
+  })
 }
 
 export function changePassword() {

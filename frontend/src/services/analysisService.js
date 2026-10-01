@@ -9,7 +9,7 @@ export function analyzeXray(file) {
     url: '/predictions/upload',
     data: formData,
   })
-}
+} 
 
 export function getPredictionHistory() {
   return apiRequest({

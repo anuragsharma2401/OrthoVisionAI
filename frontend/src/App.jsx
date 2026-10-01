@@ -9,7 +9,6 @@ import Profile from './pages/Profile.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import RecoveryGuidance from './pages/RecoveryGuidance.jsx'
-import Settings from './pages/Settings.jsx'
 import Verify from './pages/Verify.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import XRayAnalysis from './pages/XRayAnalysis.jsx'
@@ -38,14 +37,6 @@ function App() {
         element={
           <ProtectedRoute>
             <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <Settings />
           </ProtectedRoute>
         }
       />

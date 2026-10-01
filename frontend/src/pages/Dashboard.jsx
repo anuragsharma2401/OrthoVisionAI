@@ -13,6 +13,14 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import DashboardLayout from '../layouts/DashboardLayout.jsx'
 import { getMedicalReports, getPredictionHistory } from '../services/analysisService.js'
 
+function getDashboardGreeting() {
+  const hour = new Date().getHours()
+
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -96,10 +104,9 @@ function Dashboard() {
         <header className="dashboard-welcome">
           <div>
             <p className="dashboard-eyebrow">OrthoVision AI workspace</p>
-            <h2>Good morning, {firstName} 👋</h2>
+            <h2>{getDashboardGreeting()}, {firstName} 👋</h2>
             <p>Here&apos;s an overview of your recent health activity.</p>
           </div>
-          <span className="demo-badge">Backend-connected workspace</span>
         </header>
 
         <section className="dashboard-action-grid" aria-label="Quick actions">

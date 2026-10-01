@@ -18,6 +18,7 @@ function MedicalReports() {
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [latestReport, setLatestReport] = useState(null)
+  const [expandedReportId, setExpandedReportId] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -56,11 +57,15 @@ function MedicalReports() {
       setUploadedReports((current) => [response.report, ...current])
       setLatestReport(response.report)
       setSelectedFile(null)
-      setSuccessMessage(
-        response.report?.status === 'analyzed'
-          ? 'Medical report uploaded and analyzed with Gemini.'
-          : 'Medical report uploaded. Analysis details are shown when available.',
-      )
+      if (response.analysis_error) {
+        setErrorMessage(response.analysis_error)
+      } else {
+        setSuccessMessage(
+          response.report?.status === 'Analyzed'
+            ? 'Medical report uploaded and analyzed with Gemini.'
+            : 'Medical report uploaded. Analysis details are shown when available.',
+        )
+      }
     } catch (error) {
       setErrorMessage(error.message)
     } finally {
@@ -129,11 +134,13 @@ function MedicalReports() {
               ]}
             />
 
-            {latestReport?.analysis_error && (
+            {/* {latestReport?.analysis_error && (
               <p className="module-alert error">{latestReport.analysis_error}</p>
-            )}
+            )} */}
 
-            {(latestReport?.explanation || latestReport?.key_findings?.length || latestReport?.guidance) && (
+          </ModuleCard>
+        </section>
+        {(latestReport?.explanation || latestReport?.key_findings?.length || latestReport?.guidance) && (
               <div className="ai-explanation-card">
                 {latestReport?.explanation && (
                   <section>
@@ -159,9 +166,6 @@ function MedicalReports() {
                 )}
               </div>
             )}
-          </ModuleCard>
-        </section>
-
         <ModuleCard>
           <div className="module-card-heading">
             <ClipboardList size={22} />
@@ -175,23 +179,82 @@ function MedicalReports() {
             <p className="module-disclaimer">Loading medical reports...</p>
           ) : uploadedReports.length > 0 ? (
             <div className="module-list">
-              {uploadedReports.map((report) => (
-                <button
-                  className="module-list-row module-list-button"
-                  key={report.id || `${report.file_name}-${report.created_at}`}
-                  type="button"
-                  onClick={() => setLatestReport(report)}
-                >
-                  <div>
-                    <strong>{report.file_name || 'Medical report'}</strong>
-                    <span>{formatReportDate(report.created_at)}</span>
+              {uploadedReports.slice(0, 5).map((report) => {
+                const isExpanded = expandedReportId === report.id
+
+                return (
+                  <div className={`recent-analysis-item ${isExpanded ? 'expanded' : ''}`}>
+                    <div className="module-list-row">
+                      <div className="recent-analysis-summary">
+                        <strong>{report.file_name || 'Medical report'}</strong>
+
+                        <span>
+                          {report.analysis?.report_type || 'Medical report'}
+                        </span>
+
+                        <small>
+                          {formatReportDate(report.created_at)}
+                        </small>
+                      </div>
+
+                      <div className="recent-analysis-actions">
+                        <StatusPill tone="info">
+                          {report.status || 'uploaded'}
+                        </StatusPill>
+
+                        <button
+                          type="button"
+                          className="recent-analysis-expand"
+                          onClick={() =>
+                            setExpandedReportId(isExpanded ? null : report.id)
+                          }
+                        >
+                          {isExpanded ? '←' : '→'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="recent-analysis-details">
+                        <div className="recent-analysis-guidance">
+                          {report.explanation && (
+                            <details open>
+                              <summary>Report Explanation</summary>
+                              <p>{report.explanation||
+                                'No explanation available.'}</p>
+                            </details>
+                          )}
+
+                          {report.key_findings?.length > 0 && (
+                            <details>
+                              <summary>Structured Findings</summary>
+                              <ul>
+                                {report.key_findings.map((finding) => (
+                                  <li key={finding}>{finding}</li>
+                                ))||
+                                'No structure findings available.'}
+                              </ul>
+                            </details>
+                          )}
+
+                          {report.guidance && (
+                            <details>
+                              <summary>General Guidance</summary>
+                              <p>{report.guidance ||
+                                'No general guidance available.'}</p>
+                            </details>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <StatusPill tone="info">{report.status || 'uploaded'}</StatusPill>
-                </button>
-              ))}
+                )
+              })}
             </div>
           ) : (
-            <p className="module-disclaimer">No medical reports uploaded yet.</p>
+            <p className="module-disclaimer">
+              No medical reports uploaded yet.
+            </p>
           )}
         </ModuleCard>
       </section>

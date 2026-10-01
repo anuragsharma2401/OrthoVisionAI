@@ -92,14 +92,19 @@ function ForgotPassword() {
             purpose="forgot-password"
             onChangeContactPath="/forgot-password"
             onVerified={(otp) => {
-              navigate(
-                `/reset-password?identifier=${encodeURIComponent(identifier)}&otp=${encodeURIComponent(otp)}`,
-              )
+              setStatus({
+                type: 'success',
+                message: 'OTP verified successfully. Redirecting to reset password...',
+              })
+
+              setTimeout(() => {
+                navigate(
+                  `/reset-password?identifier=${encodeURIComponent(identifier)}&otp=${encodeURIComponent(otp)}`,
+                  { replace: true },
+                )
+              }, 1200)
             }}
           />
-          <p className="auth-switch reset-next-step">
-            OTP verified? Continue to <Link to="/reset-password">Reset Password</Link>
-          </p>
         </>
       )}
     </AuthLayout>

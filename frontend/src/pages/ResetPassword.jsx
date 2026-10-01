@@ -41,13 +41,13 @@ function ResetPassword() {
   function validate() {
     const nextErrors = {}
 
-    if (!values.identifier.trim()) {
-      nextErrors.identifier = 'Email is required.'
-    }
+    // if (!values.identifier.trim()) {
+    //   nextErrors.identifier = 'Email is required.'
+    // }
 
-    if (!/^\d{6}$/.test(values.otp)) {
-      nextErrors.otp = 'Enter the 6-digit OTP.'
-    }
+    // if (!/^\d{6}$/.test(values.otp)) {
+    //   nextErrors.otp = 'Enter the 6-digit OTP.'
+    // }
 
     if (!values.password) nextErrors.password = 'New password is required.'
     else if (passwordStrength.score < 4) {
@@ -100,7 +100,7 @@ function ResetPassword() {
       subtitle="Use a strong password that is unique to your OrthoVision AI account."
     >
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <FormField
+        {/* <FormField
           autoComplete="email"
           error={errors.identifier}
           id="resetIdentifier"
@@ -121,7 +121,7 @@ function ResetPassword() {
           placeholder="Enter 6-digit OTP"
           value={values.otp}
           onChange={updateValue}
-        />
+        /> */}
 
         <FormField
           autoComplete="new-password"

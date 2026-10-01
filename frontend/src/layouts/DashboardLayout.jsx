@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Link, NavLink } from 'react-router-dom'
 import {
   Bell,
@@ -12,7 +13,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Settings,
   UploadCloud,
   User,
   X,
@@ -33,13 +33,13 @@ const navigationItems = [
   {
     items: [
       { icon: User, label: 'Profile', to: '/profile' },
-      { icon: Settings, label: 'Settings', to: '/settings' },
     ],
   },
 ]
 
 function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
   const { logout, user } = useAuth()
+  const navigate = useNavigate()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -105,6 +105,8 @@ function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
           <button
             className="collapse-button"
             type="button"
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             onClick={() => setIsCollapsed((current) => !current)}
           >
             {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -130,16 +132,17 @@ function DashboardLayout({ children, pageTitle = 'Dashboard' }) {
           </div>
 
           <div className="topbar-actions">
-            <button className="notification-button" type="button" aria-label="Notifications">
-              <Bell size={19} />
-              <span></span>
-            </button>
+            
 
-            <button className="profile-chip" type="button">
-              <span className="avatar">{user?.name?.charAt(0) || 'A'}</span>
+            <button
+              className="profile-chip"
+              type="button"
+              onClick={() => navigate('/profile')}
+            >
+              <span className="avatar">{user?.name?.charAt(0) }</span>
               <span>
-                <strong>{'Anurag'}</strong>
-                <small>{'OrthoVision User'}</small>
+                <strong>{user?.name}</strong>
+                
               </span>
             </button>
           </div>

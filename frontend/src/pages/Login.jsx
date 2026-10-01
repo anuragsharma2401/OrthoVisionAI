@@ -19,7 +19,10 @@ function Login() {
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
-  const [status, setStatus] = useState({ type: '', message: '' })
+  const [status, setStatus] = useState({
+  type: location.state?.message ? 'success' : '',
+  message: location.state?.message || '',
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function updateValue(event) {
